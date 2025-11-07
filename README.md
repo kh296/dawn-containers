@@ -1,44 +1,50 @@
 # Running PyTorch applications in containers on Dawn
 
-## Quickstart
+## 1. Quickstart
 
 The following are minimal instructions for running example PyTorch
 model training on Dawn, using muldi-node multi-GPU distributed data
 parallel with containers.  The example is for training classification of
 hand-written digits from the MNIST dataset.
 
-Working either from a Dawn login node or from a Dawn compute node:
-- Clone this repository, and move to the `pytorch` directory:
-```
-clone https://github.com/kh296/dawn-containers
-cd pytorch
-```
+It's possible to work either on a Dawn login node or on a Dawn compute node.
 
-From a Dawn login node, substituting a valid project account
-for `<project_account>`:
-- Submit a Slurm job to build the Apptainer image:
+### 1.1 On a Dawn login node
+
+- Clone this repository, and move to the `pytorch` directory:
   ```
+  clone https://github.com/kh296/dawn-containers
+  cd pytorch
+```
+- Submit a Slurm job to create the Apptainer image file `pytorch2.8.sif`:
+  ```
+  # Substitute valid project account for <project_account>.
+  # Output written to build_image.log.
   sbatch --account=<project_account> build_image.sh
   ```
-  This writes output to `build_image.log`, and creates an image file
-  `pytorch2.8.sif`.
 - Once the image-build job has completed, submit a Slurm job to run the PyTorch
   example:
   ```
+  # Substitute valid project account for <project_account>.
+  # Output written to build_imag.log
   sbatch --account=<project_account> go_apptainer.sh
   ```
-  This writes output to `go_apptainer.log`.
 
-From a Dawn compute node, submit Slurm jobs in the same way as on a login node,
-or run scripts interactively:
-- Build the Apptainer image:
+### 1.2 On a Dawn compute node
+
+Follow the same steps as on a Dawn login node, or execute scripts interactively
+rather than submitting as Slurm jobs:
+
+- Clone this repository, and move to the `pytorch` directory:
+  ```
+  clone https://github.com/kh296/dawn-containers
+  cd pytorch
+  ```
+- Create the Apptainer image file `pytorch2.8.sif`:
   ```
   ./build_image.sh
   ```
-  This writes output to terminal (`stdout`), and creates an image file
-  `pytorch2.8.sif`.
 - Run the PyTorch example:
   ```
   ./go_apptainer.sh
   ```
-  This writes output to terminal (`stdout`).
