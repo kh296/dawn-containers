@@ -10,7 +10,6 @@ module load rhel9/default-dawn
 module load intel-oneapi-ccl/2021.15.0
 
 # Perform environment setup.
-source set_launch_variables.sh
 export CCL_ATL_TRANSPORT="ofi"
 export CCL_ZE_IPC_EXCHANGE="sockets"
 export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
