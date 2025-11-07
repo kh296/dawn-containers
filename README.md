@@ -65,8 +65,9 @@ This includes drivers for Intel GPUs, and an installation of
 
 The definition file may be modified, following the instructions for
 [Apptainer definition files](https://apptainer.org/docs/user/main/definition_files.html), so as to create an image with additional functionality.  For
-example, additional Python packages can be installed in a [%post]() section,
-for example:
+example, additional Python packages can be installed in a
+[%post](https://apptainer.org/docs/user/main/definition_files.html#post)
+section, for example:
 ```
 %post
     export PIP_ROOT_USER_ACTION=ignore;
