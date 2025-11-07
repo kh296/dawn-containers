@@ -15,7 +15,7 @@ It's possible to work either on a Dawn login node or on a Dawn compute node.
   ```
   clone https://github.com/kh296/dawn-containers
   cd pytorch
-```
+  ```
 - Submit a Slurm job to create the Apptainer image file `pytorch2.8.sif`:
   ```
   # Substitute valid project account for <project_account>.
