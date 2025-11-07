@@ -3,9 +3,12 @@
 ## 1. Quickstart
 
 The following are minimal instructions for running example PyTorch
-model training on Dawn via Apptainer containers, and making use of multi-node
-multi-GPU distributed data parallel  The example is for training
-classification of hand-written digits from the MNIST dataset.
+model training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n) via
+[Apptainer](https://apptainer.org/docs/user/main/index.html)
+containers, and making use of multi-node
+multi-GPU [distributed data parallel](https://docs.pytorch.org/tutorials/beginner/ddp_series_intro.html?utm_source=distr_landing&utm_medium=ddp_series_intro).
+The example is for training
+classification of hand-written digits from the [MNIST dataset](https://web.archive.org/web/20200430193701/http://yann.lecun.com/exdb/mnist/).
 
 Instructions are provided for working on a Dawn login node and on
 a Dawn compute node.
