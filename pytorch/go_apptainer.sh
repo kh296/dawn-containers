@@ -1,10 +1,10 @@
 #!/bin/bash -l
-#SBATCH --job-name=ddp-torch   # create a short name for the job
-#SBATCH --output=%x.log        # job output file
-#SBATCH --partition=pvc9       # cluster partition to be used
-#SBATCH --nodes=2              # number of nodes
-#SBATCH --gres=gpu:4         # number of allocated gpus per node
-#SBATCH --time=01:00:00        # total run time limit (HH:MM:SS)
+#SBATCH --job-name=go_apptainer # create a short name for the job
+#SBATCH --output=%x.log         # job output file
+#SBATCH --partition=pvc9        # cluster partition to be used
+#SBATCH --nodes=2               # number of nodes
+#SBATCH --gres=gpu:4            # number of allocated gpus per node
+#SBATCH --time=01:00:00         # total run time limit (HH:MM:SS)
 
 # Script for running example pytorch model training on Dawn,
 # using multi-node multi-GPU distributed data parallel with containers.
