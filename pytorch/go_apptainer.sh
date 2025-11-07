@@ -16,6 +16,11 @@
 # or can be submitted to Dawn's Slurm batch system, substituting a
 # valid project account for <project_account>:.
 #     sbatch --acount=<project_account> ./go_apptainer.sh
+#
+# When working interactively, it's also possible to use this script to
+# start a bash shell inside the container:
+#     ./go_apptainer.sh bash
+# This can be useful, for example, for environment checking.
 
 T0=${SECONDS}
 echo "Job start on $(hostname): $(date)"
@@ -36,6 +41,15 @@ if [ ! -d data ]; then
     echo "${CMD}"
     eval "${CMD}"
     echo "Time downloading dataset: $((${SECONDS}-${T1})) seconds"
+fi
+
+# Start bash shell inside container - can be useful for checking environment.
+if [[ "bash" == "${1}" ]]; then
+    CMD="${APPTAINER_LAUNCH} bash"
+    echo ""
+    echo "${CMD}"
+    eval "${CMD}"
+    exit
 fi
 
 # Run and time application.
