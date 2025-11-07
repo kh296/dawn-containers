@@ -33,7 +33,5 @@ export APPTAINER_BINDPATH="\
 /usr/local/software/global-rhel9
 "
 
-# Define apptainer and mpi launch commands.
-APPTAINER_IMAGE="pytorch2.8.sif"
-APPTAINER_LAUNCH="apptainer exec ${APPTAINER_IMAGE}"
+# Define mpi launch command.
 MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
