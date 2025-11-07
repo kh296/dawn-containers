@@ -21,6 +21,9 @@ T0=${SECONDS}
 echo "Image build started on $(hostname): $(date)"
 echo ""
 
+# Exit at first failure.
+set -e
+
 CMD="apptainer build --force pytorch2.8.sif pytorch2.8.def"
 echo "${CMD}"
 eval ${CMD}
