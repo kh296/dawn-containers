@@ -52,9 +52,6 @@ rather than submitting as Slurm jobs:
 
 ## 2. Further information
 
-Further information about the example, and about running PyTorch applications
-via Apptainer containers is given below.
-
 ### 2.1 Apptainer image
 
 The script [pytorch/build_image.sh](pytorch/build_image.sh) builds an
