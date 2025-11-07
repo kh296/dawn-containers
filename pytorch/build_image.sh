@@ -17,4 +17,14 @@
 # valid project account for <project_account>:.
 #     sbatch --acount=<project_account> ./build_apptainer_image.sh
 
-apptainer build --force pytorch2.8.sif pytorch2.8.def
+T0=${SECONDS}
+echo "Image build started on $(hostname): $(date)"
+echo ""
+
+CMD="apptainer build --force pytorch2.8.sif pytorch2.8.def"
+echo "${CMD}"
+eval ${CMD}
+
+echo ""
+echo "Image build completed on $(hostname): $(date)"
+echo "Time for image build: $((${SECONDS}-${T0})) seconds"
