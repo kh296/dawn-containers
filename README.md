@@ -1,13 +1,14 @@
-# Running PyTorch applications in containers on Dawn
+# Running PyTorch applications on Dawn via Apptainer containers
 
 ## 1. Quickstart
 
 The following are minimal instructions for running example PyTorch
-model training on Dawn, using muldi-node multi-GPU distributed data
-parallel with containers.  The example is for training classification of
-hand-written digits from the MNIST dataset.
+model training on Dawn via Apptainer containers, and making use of multi-node
+multi-GPU distributed data parallel  The example is for training
+classification of hand-written digits from the MNIST dataset.
 
-It's possible to work either on a Dawn login node or on a Dawn compute node.
+Instructions are provided for working on a Dawn login node and on
+a Dawn compute node.
 
 ### 1.1 On a Dawn login node
 
@@ -48,3 +49,37 @@ rather than submitting as Slurm jobs:
   ```
   ./go_apptainer.sh
   ```
+
+## 2. Further information
+
+Further information about the example, and about running PyTorch applications
+via Apptainer containers is given below.
+
+### 2.1 Apptainer image
+
+The script [pytorch/build_image.sh](pytorch/build_image.sh) builds an
+Apptainer image, `pytorch2.8.sif`, as specified by
+a definition file, [pytorch/pytorch2.8.def](pytorch/pytorch2.8.def).  The
+build is from the Docker image
+[intel/intel-extension-for-pytorch:2.8.10-xpu](https://hub.docker.com/r/intel/intel-extension-for-pytorch).
+This includes drivers for Intel GPUs, and an installation of
+[PyTorch 2.8](https://github.com/pytorch/pytorch/tree/v2.8.0) together with
+[Intel Extension for PyTorch](https://intel.github.io/intel-extension-for-pytorch/xpu/2.8.10+xpu/).
+
+The definition file may be modified, following the instructions for
+[Apptainer definition files](https://apptainer.org/docs/user/main/definition_files.html), so as to create an image with additional functionality.  For
+example, additional Python packages can be installed in a [%post]() section,
+for example:
+```
+%post
+    export PIP_ROOT_USER_ACTION=ignore;
+    export PIP_NO_CACHE_DIR=1;
+    python -m pip install --upgrade pip;
+    python -m pip install matplotlib;
+    python -m pip install pandas;
+    python -m pip install seaborn;
+```
+
+### 2.2 Environment setup
+
+### 2.3 PyTorch application 
