@@ -28,9 +28,9 @@ export APPTAINER_BINDPATH="\
 /usr/lib64/libucp.so.0,\
 /usr/lib64/libucs.so.0,\
 /usr/lib64/libuct.so.0,\
-/usr/local/dawn/software/spack-rocky9/opt-dawn-2025-03-23/linux-rocky9-sapphirerapids/oneapi-2025.1.0,\
-/usr/local/software/slurm/current-rhel9,\
-/usr/local/software/global-rhel9
+${ONEAPI_DIR},\
+${SLURM_DIR},\
+${GLOBAL_DIR}
 "
 
 # Define mpi launch command.

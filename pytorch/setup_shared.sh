@@ -90,10 +90,10 @@ fi
 # Define master port based on SLURM_JOB_ID.
 MASTER_PORT=$(( (SLURM_JOB_ID % 10000) + 50000 ))
 
-# Define paths used to bind host paths to container at apptainer launch,
+# Define host paths bound to container at apptainer launch,
 # and used to define PATH and LD_LIBRARY_PATH inside containter at runtime.
 ONEAPI_DIR="/usr/local/dawn/software/spack-rocky9/opt-dawn-2025-03-23/linux-rocky9-sapphirerapids/oneapi-2025.1.0"
-SLURM_DIR="/usr/local/software/slurm/current-rhel9/sbin:/usr/local/software/slurm/current-rhel9"
+SLURM_DIR="/usr/local/software/slurm/current-rhel9"
 GLOBAL_DIR="/usr/local/software/global-rhel9"
 
 # Unset and set Slurm variables.
