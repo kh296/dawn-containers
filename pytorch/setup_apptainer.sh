@@ -1,9 +1,5 @@
 # Script to set environment variables for apptainer launch.
 
-# Ensure definition of environment variables
-# used both at apptainer launch and at runtime.
-source setup_shared.sh
-
 # Load modules.
 module purge
 module load rhel9/default-dawn
@@ -13,6 +9,7 @@ module load intel-oneapi-ccl/2021.15.0
 export CCL_ATL_TRANSPORT="ofi"
 export CCL_ZE_IPC_EXCHANGE="sockets"
 export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
+source setup_mpi.sh
 
 # Define host paths to be bound when launching apptainer.
 export APPTAINER_BINDPATH="\
@@ -28,10 +25,5 @@ export APPTAINER_BINDPATH="\
 /usr/lib64/libucp.so.0,\
 /usr/lib64/libucs.so.0,\
 /usr/lib64/libuct.so.0,\
-${ONEAPI_DIR},\
-${SLURM_DIR},\
-${GLOBAL_DIR}
+/usr/local/dawn/software/spack-rocky9/opt-dawn-2025-03-23/linux-rocky9-sapphirerapids/oneapi-2025.1.0\
 "
-
-# Define mpi launch command.
-MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"

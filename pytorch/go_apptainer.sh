@@ -30,8 +30,6 @@ set -e
 
 # Set up environment for launching container.
 source setup_apptainer.sh
-
-# Define apptainer launch command.
 APPTAINER_LAUNCH="apptainer exec pytorch2.8.sif"
 
 # Ensure that data needed are downloaded before running application.
@@ -39,8 +37,8 @@ if [ ! -d data ]; then
     echo ""
     echo "Downloading dataset"
     T1=${SECONDS}
-    PYTHON_DOWNLOAD_LAUNCH="python -c \"import torchvision as tv; tv.datasets.MNIST('data', download=True)\""
-    CMD="${APPTAINER_LAUNCH} ${PYTHON_DOWNLOAD_LAUNCH}"
+    DOWNLOAD_LAUNCH="python -c \"import torchvision as tv; tv.datasets.MNIST('data', download=True)\""
+    CMD="${APPTAINER_LAUNCH} ${DOWNLOAD_LAUNCH}"
     echo "${CMD}"
     eval "${CMD}"
     echo "Time downloading dataset: $((${SECONDS}-${T1})) seconds"
@@ -51,17 +49,25 @@ if [[ "bash" == "${1}" ]]; then
     CMD="${APPTAINER_LAUNCH} bash"
     echo ""
     echo "${CMD}"
-    eval "${CMD}"
+    ${CMD}
     exit
 fi
 
 # Run and time application.
 T2=${SECONDS}
-CMD="${MPI_LAUNCH} ${APPTAINER_LAUNCH} ./go_mnist_classify_ddp.sh"
+PYTORCH_LAUNCH="\
+python mnist_classify_ddp.py\
+ --ntasks-per-node ${TASKS_PER_NODE}\
+ --dist-url ${MASTER_ADDR}\
+ --dist-port ${MASTER_PORT}\
+ --cpus-per-task ${CPUS_PER_TASK}\
+ --epochs 2\
+"
+CMD="${MPI_LAUNCH} ${APPTAINER_LAUNCH} ${PYTORCH_LAUNCH}"
 echo ""
 echo "PyTorch DDP run started: $(date)"
 echo "${CMD}"
-eval "${CMD}"
+${CMD}
 echo ""
 echo "PyTorch DDP run completed: $(date)"
 echo "Run time: $((${SECONDS}-${T2})) seconds"

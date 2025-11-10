@@ -1,13 +1,11 @@
-# Script to ensure definition of environment variables
-# used both at apptainer launch and at runtime.
-
-# Ensure that selected Slurm environment variables are set,
-# also if outside of a Slurm environment, and obtain derived variables.
+# Script to set environment variables useful for task parallelisation with MPI.
+# These variables are derived from variables typically set in a Slurm
+# environment, but with default values used for any Slurm variables
+# that are missing.
 #
 # The derived variables specifying number of tasks per node (TASKS_PER_NODE),
 # number of tasks (WORLD_SIZE), and number of CPU cores per task
-# (CPUS_PER_TASK) are used in defining task parallelisation.
-# These numbers depend on the number of nodes allocated, on the
+# (CPUS_PER_TASK) depend on the number of nodes allocated, on the
 # number of GPUs per node, and on how GPUs are configured.
 #
 # On Dawn (hostname *pvc-s*), if a single node is allocated,
@@ -34,8 +32,10 @@ if [[ "$(hostname)" == "pvc-s"* ]]; then
     if [[ "COMPOSITE" == ${ZE_FLAT_DEVICE_HIERARCHY} ]]; then
         DEVICES_PER_GPU=1
     else
+	ZE_FLAT_DEVICE_HIERARCHY="FLAT"
         DEVICES_PER_GPU=2
     fi
+    export ZE_FLAT_DEVICE_HIERARCHY
 else
     DEVICES_PER_GPU=1
 fi
@@ -79,7 +79,7 @@ fi
 if [[ -z "${NODELIST}" || -z "${MASTER_ADDR}" ]]; then
     if command -v scontrol 1>/dev/null 2>&1; then
         NODELIST="$(echo $(scontrol show hostnames ${SLURM_JOB_NODELIST})\
-	       	| sed 's/ /,/g')"
+            | sed 's/ /,/g')"
     else
         NODELIST="${SLURM_JOB_NODELIST}"
     fi
@@ -90,14 +90,11 @@ fi
 # Define master port based on SLURM_JOB_ID.
 MASTER_PORT=$(( (SLURM_JOB_ID % 10000) + 50000 ))
 
-# Define host paths bound to container at apptainer launch,
-# and used to define PATH and LD_LIBRARY_PATH inside containter at runtime.
-ONEAPI_DIR="/usr/local/dawn/software/spack-rocky9/opt-dawn-2025-03-23/linux-rocky9-sapphirerapids/oneapi-2025.1.0"
-SLURM_DIR="/usr/local/software/slurm/current-rhel9"
-GLOBAL_DIR="/usr/local/software/global-rhel9"
-
 # Unset and set Slurm variables.
 # This is necessary to allow submission of a Slurm job from a computer node.
 unset SLURM_MEM_PER_CPU
 unset SLURM_MEM_PER_NODE
 SLURM_EXPORT_ENV=ALL
+
+# Define mpi launch command.
+MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
