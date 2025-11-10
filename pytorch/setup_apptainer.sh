@@ -1,14 +1,6 @@
 # Script to set environment variables for apptainer launch.
 
-# Load modules.
-module purge
-module load rhel9/default-dawn
-module load intel-oneapi-ccl/2021.15.0
-
-# Perform environment setup.
-export CCL_ATL_TRANSPORT="ofi"
-export CCL_ZE_IPC_EXCHANGE="sockets"
-export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
+# Set environment variables relating to MPI.
 source setup_mpi.sh
 
 # Define host paths to be bound when launching apptainer.

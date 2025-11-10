@@ -49,10 +49,11 @@ else
     TASKS_PER_NODE=$((${SLURM_GPUS_ON_NODE}*${DEVICES_PER_GPU}))
     if [[ "$(hostname)" == "pvc-s"* ]]; then
         if [[ ${TASKS_PER_NODE} -gt 1 ]]; then
-            export ZE_AFFINITY_MASK=$(seq -s, 0 $((${TASKS_PER_NODE}-1)))
+            ZE_AFFINITY_MASK=$(seq -s, 0 $((${TASKS_PER_NODE}-1)))
         else
-            export ZE_AFFINITY_MASK=0
+            ZE_AFFINITY_MASK=0
         fi
+        export ZE_AFFINITY_MASK
     fi
 fi
 
@@ -76,16 +77,13 @@ if [[ -z "${SLURM_JOB_ID}" ]]; then
 fi
 
 # Create list of node names, and identify first in list as master address.
-if [[ -z "${NODELIST}" || -z "${MASTER_ADDR}" ]]; then
-    if command -v scontrol 1>/dev/null 2>&1; then
-        NODELIST="$(echo $(scontrol show hostnames ${SLURM_JOB_NODELIST})\
-            | sed 's/ /,/g')"
-    else
-        NODELIST="${SLURM_JOB_NODELIST}"
-    fi
-    export NODELIST
-    export MASTER_ADDR="${NODELIST%%,*}"
+if command -v scontrol 1>/dev/null 2>&1; then
+    NODELIST="$(echo $(scontrol show hostnames ${SLURM_JOB_NODELIST})\
+        | sed 's/ /,/g')"
+else
+    NODELIST="${SLURM_JOB_NODELIST}"
 fi
+MASTER_ADDR="${NODELIST%%,*}"
 
 # Define master port based on SLURM_JOB_ID.
 MASTER_PORT=$(( (SLURM_JOB_ID % 10000) + 50000 ))
@@ -98,3 +96,13 @@ SLURM_EXPORT_ENV=ALL
 
 # Define mpi launch command.
 MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
+
+# Load modules.
+module purge
+module load rhel9/default-dawn
+module load intel-oneapi-ccl/2021.15.0
+
+# Perform environment setup.
+export CCL_ATL_TRANSPORT="ofi"
+export CCL_ZE_IPC_EXCHANGE="sockets"
+export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
