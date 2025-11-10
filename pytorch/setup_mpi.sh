@@ -103,6 +103,9 @@ module load rhel9/default-dawn
 module load intel-oneapi-ccl/2021.15.0
 
 # Perform environment setup.
+# https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-atl-transport
 export CCL_ATL_TRANSPORT="ofi"
+# https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-ze-ipc-exchange
 export CCL_ZE_IPC_EXCHANGE="sockets"
+# https://github.com/uxlfoundation/oneCCL/blob/2021.15/src/topology/topo_manager.cpp#L468
 export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0

@@ -1,9 +1,11 @@
-# Script to set environment variables for apptainer launch.
+# Script to enable MPI with Apptainer containers, using bind model:
+# https://apptainer.org/docs/user/main/mpi.html#bind-model
 
 # Set environment variables relating to MPI.
 source setup_mpi.sh
 
-# Define host paths to be bound when launching apptainer.
+# Define host paths to be mapped to container paths, using bind mounts:
+# https://apptainer.org/docs/user/main/bind_paths_and_mounts.html
 export APPTAINER_BINDPATH="\
 /etc/libibverbs.d,\
 /usr/lib64/libefa.so.1,\
