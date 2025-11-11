@@ -18,9 +18,12 @@
 #     sbatch --acount=<project_account> ./go_apptainer.sh
 #
 # When working interactively, it's also possible to use this script to
-# start a bash shell inside the container:
+# start a bash shell inside a container launched directly by Apptainer (no MPI):
 #     ./go_apptainer.sh bash
-# This can be useful, for example, for environment checking.
+# and to output the environment inside a container launched via
+# MPI and Apptainer (the environment used for running the pytorch
+# model training).  These options can be useful for debugging and
+# environment checking.
 
 T0=${SECONDS}
 echo "Job start on $(hostname): $(date)"
@@ -44,9 +47,16 @@ if [ ! -d data ]; then
     echo "Time downloading dataset: $((${SECONDS}-${T1})) seconds"
 fi
 
-# Start bash shell inside container - can be useful for checking environment.
 if [[ "bash" == "${1}" ]]; then
+# Start bash shell inside a container launched directly by Apptainer (no MPI).
     CMD="${APPTAINER_LAUNCH} bash"
+    echo ""
+    echo "${CMD}"
+    ${CMD}
+    exit
+elif [[ "env" == "${1}" ]]; then
+# Output environment inside a container launched via MPI and Apptainer.
+    CMD="mpiexec -n 1 ${APPTAINER_LAUNCH} env"
     echo ""
     echo "${CMD}"
     ${CMD}
