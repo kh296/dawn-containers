@@ -2,11 +2,11 @@
 
 ## 1. Quickstart
 
-The following are minimal instructions for running example PyTorch
-model training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n) via
-[Apptainer](https://apptainer.org/docs/user/main/index.html)
-containers, and making use of multi-node
-multi-GPU [distributed data parallel](https://docs.pytorch.org/tutorials/beginner/ddp_series_intro.html?utm_source=distr_landing&utm_medium=ddp_series_intro).
+The following are minimal instructions for running example PyTorch model
+training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n)
+using multi-node multi-GPU
+[distributed data parallel](https://docs.pytorch.org/tutorials/beginner/ddp_series_intro.html?utm_source=distr_landing&utm_medium=ddp_series_intro) with
+[Apptainer](https://apptainer.org/docs/user/main/index.html) containers
 The example is for training
 classification of hand-written digits from the [MNIST dataset](https://web.archive.org/web/20200430193701/http://yann.lecun.com/exdb/mnist/).
 
@@ -93,7 +93,7 @@ via containers:
   [Slurm environment variables](https://slurm.schedmd.com/sbatch.html#SECTION_OUTPUT-ENVIRONMENT-VARIABLES),
   and on the [device hierarchy](https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-1/exposing-device-hierarchy.html) chosen
   (environment variable `ZE_FLAT_DEVICE_HIERARCY` set to `"COMPOSITE"`
-  or `"FLAT"`).  In particular, it determines values for:
+  or `"FLAT"` (default)).  In particular, it determines values for:
   - `NODELIST`: list of names of allocated nodes;
   - `TASKS_PER_NODE`: number of GPU root devices per node;
   - `CPUS_PER_TASK`: number of CPU cores allocated per GPU root device;
@@ -105,10 +105,11 @@ via containers:
   GPU stack for `"FLAT"` hierarchy.  (Dawn has two stacks per GPU card.)
   Each GPU root device is used for a separate processing task.
 
-  In addition, this script loads modules for enabling MPI on the node
-  from which it's sourced, sets non-default values for some of the
-  environment variables that affect MPI behaviour, and defines an MPI
-  launch command that will use all allocated resources:
+  In addition, this script loads modules for enabling
+  [MPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html)
+  on the node from which the script is sourced, sets non-default values
+  for some of the environment variables that affect MPI behaviour, and
+  defines an MPI launch command that will use all allocated resources:
   ```
   MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
   ```
@@ -126,4 +127,62 @@ Except for `PATH` and `LD_LIBRARY_PATH`, each container inherits the
 environment of the process from which its launched.  This has the advantage
 that environment variables for MPI communication are set automatically.
 
-### 2.3 PyTorch application 
+### 2.3 PyTorch applications 
+
+PyTorch applications for distributed processing with and without containers
+need to be set up in the same way.  In the example
+[pytorch/mnist_classify_ddp.py](pytorch/mnist_classify_ddp.py), this involves:
+- identifying the device type to be used, the PyTorch module for handling
+  this device type, and the associated backend for communication during
+  distributed communication;
+- adding each device used to a process group;
+- wrapping the model for distributed processing;
+- placing data for processing on the selected devices during training and
+  testing.
+
+### 2.4 Running PyTorch applications in containers
+
+The example [pytorch/mnist_classify_ddp.py](pytorch/mnist_classify_ddp.py),
+using multi-node multi-GPU distributed data parallel with Apptainer containers,
+can be run via the script [pytorch/go_apptainer.sh](pytorch/go_apptainer.sh).
+This performs the environment setup needed, then launches a container,
+with the PyTorch application run inside it, for each GPU root device allocated,
+using the `MPI_LAUNCH` command.  On Dawn, the script can be submitted as a
+Slurm job:
+```
+# Substitute valid project account for <project_account>.
+# Output written to build_imag.log
+sbatch --account=<project_account> go_apptainer.sh
+```
+or may be run interactively on a compute node:
+```
+./go_apptainer.sh
+```
+
+Other PyTorch applications can be run by redefining the `PYTORCH_LAUNCH`
+command in [pytorch/go_apptainer.sh](pytorch/go_apptainer.sh), with setup
+scripts left unchanged.
+
+On a compute node, and potentially useful for debugging, it's possible
+to start a bash shell inside a countainer launched directly by Apptainer
+(no MPI):
+```
+./go_apptainer.sh bash
+```
+The example code can then be run interactively:
+```
+# Option 1: run training for 2 epochs, using a single GPU root device.
+python mnist_classify_ddp.py --epochs 2
+```
+```
+# Option 2: run training for 2 epochs, using all 8 root devices
+# on a Dawn node with all GPU cards allocated, and (default) ) "FLAT" hierarchy.
+mpiexec -n 8 python mnist_classify_ddp.py --epochs 2
+```
+
+On a compute node, it's also possible to output the environment inside
+a container launched via MPI and Apptainer, which is the environment
+for distributed training:
+```
+./go_apptainer.sh env
+```
