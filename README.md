@@ -3,7 +3,7 @@
 ## 1. Quickstart
 
 The following are minimal instructions for running example PyTorch model
-training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n)
+training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n),
 using multi-node multi-GPU
 [distributed data parallel](https://docs.pytorch.org/tutorials/beginner/ddp_series_intro.html?utm_source=distr_landing&utm_medium=ddp_series_intro) with
 [Apptainer](https://apptainer.org/docs/user/main/index.html) containers
@@ -18,7 +18,7 @@ a Dawn compute node.
 - Clone this repository, and move to the `pytorch` directory:
   ```
   clone https://github.com/kh296/dawn-containers
-  cd pytorch
+  cd dawn-containers/pytorch
   ```
 - Submit a Slurm job to create the Apptainer image file `pytorch2.8.sif`:
   ```
@@ -26,11 +26,11 @@ a Dawn compute node.
   # Output written to build_image.log.
   sbatch --account=<project_account> build_image.sh
   ```
-- Once the image-build job has completed, submit a Slurm job to run the PyTorch
+- Once the image build has completed, submit a Slurm job to run the PyTorch
   example:
   ```
   # Substitute valid project account for <project_account>.
-  # Output written to build_imag.log
+  # Output written to go_apptainer.log
   sbatch --account=<project_account> go_apptainer.sh
   ```
 
@@ -42,7 +42,7 @@ rather than submitting as Slurm jobs:
 - Clone this repository, and move to the `pytorch` directory:
   ```
   clone https://github.com/kh296/dawn-containers
-  cd pytorch
+  cd dawn-containers/pytorch
   ```
 - Create the Apptainer image file `pytorch2.8.sif`:
   ```
@@ -61,7 +61,7 @@ The script [pytorch/build_image.sh](pytorch/build_image.sh) builds an
 Apptainer image, `pytorch2.8.sif`, as specified by
 a definition file, [pytorch/pytorch2.8.def](pytorch/pytorch2.8.def).  The
 build is from the Docker image
-[intel/intel-extension-for-pytorch:2.8.10-xpu](https://hub.docker.com/r/intel/intel-extension-for-pytorch).
+[intel/intel-extension-for-pytorch:2.8.10-xpu](https://hub.docker.com/r/intel/intel-extension-for-pytorch#xpu-images).
 This includes drivers for Intel GPUs, and an installation of
 [PyTorch 2.8](https://github.com/pytorch/pytorch/tree/v2.8.0) together with
 [Intel Extension for PyTorch](https://intel.github.io/intel-extension-for-pytorch/xpu/2.8.10+xpu/).
@@ -70,7 +70,7 @@ The definition file may be modified, following the instructions for
 [Apptainer definition files](https://apptainer.org/docs/user/main/definition_files.html), so as to create an image with additional functionality.  For
 example, additional Python packages can be installed in a
 [%post](https://apptainer.org/docs/user/main/definition_files.html#post)
-section, for example:
+section:
 ```
 %post
     export PIP_ROOT_USER_ACTION=ignore;
@@ -94,13 +94,14 @@ via containers:
   and on the [device hierarchy](https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-1/exposing-device-hierarchy.html) chosen
   (environment variable `ZE_FLAT_DEVICE_HIERARCY` set to `"COMPOSITE"`
   or `"FLAT"` (default)).  In particular, it determines values for:
-  - `NODELIST`: list of names of allocated nodes;
+  - `NODELIST`: list of addresses (hostnames) of allocated nodes;
   - `TASKS_PER_NODE`: number of GPU root devices per node;
-  - `CPUS_PER_TASK`: number of CPU cores allocated per GPU root device;
-  - `WORLD_SIZE`: total number of GPU devices allocated;
+  - `CPUS_PER_TASK`: number of CPU cores allocated to each GPU root device;
+  - `WORLD_SIZE`: total number of GPU root devices allocated;
   - `MASTER_ADDR`: address of the node coordinating distributed processing;
   - `MASTER_PORT`: port on coordinating node for communication with
     distributed processes.
+
   A GPU root device is a GPU card for `"COMPOSITE"` hierarchy, and is a
   GPU stack for `"FLAT"` hierarchy.  (Dawn has two stacks per GPU card.)
   Each GPU root device is used for a separate processing task.
@@ -108,7 +109,7 @@ via containers:
   In addition, this script loads modules for enabling
   [MPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html)
   on the node from which the script is sourced, sets non-default values
-  for some of the environment variables that affect MPI behaviour, and
+  for some of the [oneCCL environment variables that affect MPI behaviour](https://uxlfoundation.github.io/oneCCL/env-variables.html), and
   defines an MPI launch command that will use all allocated resources:
   ```
   MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
@@ -117,27 +118,28 @@ via containers:
 - [pytorch/setup_apptainer.sh](pytorch/setup_apptainer.sh)
 
   This script sources [pytorch/setup_mpi.sh](pytorch/setup_mpi.sh),
-  and defines paths on the node (host) where a container is launched that
-  need to be mapped to container paths, using [bind mounts]
-  (https://apptainer.org/docs/user/main/bind_paths_and_mounts.html).  This
-  [allows the MPI installation of the host to be used from inside the container]
-  (https://apptainer.org/docs/user/main/mpi.html#bind-model).
+  and defines paths on the node where a container is launched (the host node)
+  that need to be mapped to container paths, using [bind mounts](https://apptainer.org/docs/user/main/bind_paths_and_mounts.html).
+  This
+  [allows the MPI installation of the host to be used from inside the container] (https://apptainer.org/docs/user/main/mpi.html#bind-model).
 
 Except for `PATH` and `LD_LIBRARY_PATH`, each container inherits the
 environment of the process from which its launched.  This has the advantage
-that environment variables for MPI communication are set automatically.
+that each container has environment variables for MPI communication set
+automatically.
 
 ### 2.3 PyTorch applications 
 
 PyTorch applications for distributed processing with and without containers
 need to be set up in the same way.  In the example
-[pytorch/mnist_classify_ddp.py](pytorch/mnist_classify_ddp.py), this involves:
-- identifying the device type to be used, the PyTorch module for handling
+[pytorch/mnist_classify_ddp.py](pytorch/mnist_classify_ddp.py), the
+main steps are:
+- identify the device type to be used, the PyTorch module for handling
   this device type, and the associated backend for communication during
-  distributed communication;
-- adding each device used to a process group;
-- wrapping the model for distributed processing;
-- placing data for processing on the selected devices during training and
+  distributed processing;
+- add each device used to a process group;
+- wrap the model for distributed processing;
+- place data for processing on the selected devices for training and
   testing.
 
 ### 2.4 Running PyTorch applications in containers
@@ -147,11 +149,12 @@ using multi-node multi-GPU distributed data parallel with Apptainer containers,
 can be run via the script [pytorch/go_apptainer.sh](pytorch/go_apptainer.sh).
 This performs the environment setup needed, then launches a container,
 with the PyTorch application run inside it, for each GPU root device allocated,
-using the `MPI_LAUNCH` command.  On Dawn, the script can be submitted as a
+using the `MPI_LAUNCH` command.  On Dawn, from the `pytorch` directory of
+this repository, the script can be submitted as a
 Slurm job:
 ```
 # Substitute valid project account for <project_account>.
-# Output written to build_imag.log
+# Output written to go_apptainer.log
 sbatch --account=<project_account> go_apptainer.sh
 ```
 or may be run interactively on a compute node:
@@ -176,13 +179,13 @@ python mnist_classify_ddp.py --epochs 2
 ```
 ```
 # Option 2: run training for 2 epochs, using all 8 root devices
-# on a Dawn node with all GPU cards allocated, and (default) ) "FLAT" hierarchy.
+# on a Dawn node with all GPU cards allocated, and (default) "FLAT" hierarchy.
 mpiexec -n 8 python mnist_classify_ddp.py --epochs 2
 ```
 
 On a compute node, it's also possible to output the environment inside
-a container launched via MPI and Apptainer, which is the environment
-for distributed training:
+a container launched via MPI and Apptainer, allowing checking of the
+container environment used for distributed training:
 ```
 ./go_apptainer.sh env
 ```

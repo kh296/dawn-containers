@@ -6,10 +6,10 @@
 #SBATCH --gres=gpu:4            # number of allocated gpus per node
 #SBATCH --time=01:00:00         # total run time limit (HH:MM:SS)
 
-# Script for running example pytorch model training on Dawn,
-# using multi-node multi-GPU distributed data parallel with containers.
-# The example is for training classification of hand-written digets
-# from the MNIST dataset.
+# Script for running example pytorch model training on the Dawn
+# supercomputer, using multi-node multi-GPU distributed data parallel
+# with Apptainer containers.  The example is for training classification
+# of hand-written digets from the MNIST dataset.
 #
 # This script can be run interactively on a Dawn compute node:
 #     ./go_apptainer.sh
