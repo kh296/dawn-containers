@@ -121,7 +121,7 @@ via containers:
   and defines paths on the node where a container is launched (the host node)
   that need to be mapped to container paths, using [bind mounts](https://apptainer.org/docs/user/main/bind_paths_and_mounts.html).
   This
-  [allows the MPI installation of the host to be used from inside the container] (https://apptainer.org/docs/user/main/mpi.html#bind-model).
+  [allows the MPI installation of the host to be used from inside the container](https://apptainer.org/docs/user/main/mpi.html#bind-model).
 
 Except for `PATH` and `LD_LIBRARY_PATH`, each container inherits the
 environment of the process from which its launched.  This has the advantage
