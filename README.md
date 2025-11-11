@@ -83,4 +83,47 @@ section, for example:
 
 ### 2.2 Environment setup
 
+Two scripts are used to set the environment for distributed processing
+via containers:
+
+- [pytorch/setup_mpi.sh](pytorch/setup_mpi.sh)
+
+  This script determines the resources available for distributed processing,
+  based on the values of
+  [Slurm environment variables](https://slurm.schedmd.com/sbatch.html#SECTION_OUTPUT-ENVIRONMENT-VARIABLES),
+  and on the [device hierarchy](https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-1/exposing-device-hierarchy.html) chosen
+  (environment variable `ZE_FLAT_DEVICE_HIERARCY` set to `"COMPOSITE"`
+  or `"FLAT"`).  In particular, it determines values for:
+  - `NODELIST`: list of names of allocated nodes;
+  - `TASKS_PER_NODE`: number of GPU root devices per node;
+  - `CPUS_PER_TASK`: number of CPU cores allocated per GPU root device;
+  - `WORLD_SIZE`: total number of GPU devices allocated;
+  - `MASTER_ADDR`: address of the node coordinating distributed processing;
+  - `MASTER_PORT`: port on coordinating node for communication with
+    distributed processes.
+  A GPU root device is a GPU card for `"COMPOSITE"` hierarchy, and is a
+  GPU stack for `"FLAT"` hierarchy.  (Dawn has two stacks per GPU card.)
+  Each GPU root device is used for a separate processing task.
+
+  In addition, this script loads modules for enabling MPI on the node
+  from which it's sourced, sets non-default values for some of the
+  environment variables that affect MPI behaviour, and defines an MPI
+  launch command that will use all allocated resources:
+  ```
+  MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
+  ```
+
+- [pytorch/setup_apptainer.sh](pytorch/setup_apptainer.sh)
+
+  This script sources [pytorch/setup_mpi.sh](pytorch/setup_mpi.sh),
+  and defines paths on the node (host) where a container is launched that
+  need to be mapped to container paths, using [bind mounts]
+  (https://apptainer.org/docs/user/main/bind_paths_and_mounts.html).  This
+  [allows the MPI installation of the host to be used from inside the container]
+  (https://apptainer.org/docs/user/main/mpi.html#bind-model).
+
+Except for `PATH` and `LD_LIBRARY_PATH`, each container inherits the
+environment of the process from which its launched.  This has the advantage
+that environment variables for MPI communication are set automatically.
+
 ### 2.3 PyTorch application 
