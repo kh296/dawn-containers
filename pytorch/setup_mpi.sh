@@ -71,7 +71,7 @@ if [[ -z "${SLURM_JOB_NODELIST}" ]]; then
     SLURM_JOB_NODELIST=$(hostname)
 fi
 
-# Ensure that value assigned to SLURM_JOB_ID.
+# Ensure that a value is assigned to SLURM_JOB_ID.
 if [[ -z "${SLURM_JOB_ID}" ]]; then
     export SLURM_JOB_ID=5100
 fi
@@ -102,10 +102,49 @@ module purge
 module load rhel9/default-dawn
 module load intel-oneapi-ccl/2021.15.0
 
-# Perform environment setup.
+# Set some oneCCL environment variables.
+#
+# https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-log-level
+export CCL_LOG_LEVEL="warn"
+#
 # https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-atl-transport
+# On Dawn, the recommended value for Abstract Transport Layer (ATL) transport
+# is "ofi".
+# The value "mpi" may also be used, but tends to result in slower communication.
 export CCL_ATL_TRANSPORT="ofi"
+#
 # https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-ze-ipc-exchange
+# With the current setup_apptainer.sh, the only mechanism enabled
+# for Level Zero Inter Process Communication (IPC) exchange is "sockets".
 export CCL_ZE_IPC_EXCHANGE="sockets"
+#
 # https://github.com/uxlfoundation/oneCCL/blob/2021.15/src/topology/topo_manager.cpp#L468
 export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
+#
+# https://www.intel.com/content/www/us/en/docs/oneccl/developer-guide-reference/2021-8/environment-variables.html#MULTI-NIC
+# Use of the four InfiniBand network interface cards (NICs) of a Dawn node
+# can be enabled via the environment variables
+# CCL_MNIC, CCL_MNIC_NAME, CCL_MNIC_COUNT.
+#export CCL_MNIC="global"
+#export CCL_MNIC_NAME="mlx5_0,mlx5_1,mlx5_2,mlx5_3"
+#export CCL_MNIC_COUNT=4
+
+# Configure Open Fabrics Infrastructure (OFI).
+#
+# https://www.intel.com/content/www/us/en/docs/mpi-library/developer-guide-linux/2021-6/ofi-providers-support.html
+# With the current setup_apptainer.sh, the providers supported are:
+# "tcp" (default) - defaults to using "eth0" network interface card;
+# "verbs" - defaults to using "mlx5_0" network interface card.
+# With the example, "tcp" tends to be faster than "verbs",
+# and "verbs" with a single network interface card tends to be faster
+# than "verbs" with multiple network interface cards".
+export FI_PROVIDER="tcp"
+# https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-15/ofi-capable-network-fabrics-control.html#id-d9184e46
+# If CCL_ATL_TRANSPORT is set to "mpi" (not recommended on Dawn),
+# I_MPI_OFI_PROVIDER should be set to the same value as FI_PROVIDED.
+# In other cases, it's ignored.
+export I_MPI_OFI_PROVIDER=${FI_PROVIDER}
+
+# Set MPI debug level.
+# https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-8/other-environment-variables.html#id-d16918e42
+export I_MPI_DEBUG=0
