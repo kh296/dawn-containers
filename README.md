@@ -111,8 +111,9 @@ via containers:
   on the node from which the script is sourced, sets values for
   [oneCCL](https://uxlfoundation.github.io/oneCCL/) and
   [Intel MPI](https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-15/) environment variables that affect MPI
-  performance, and defines an MPI launch command that will use all
-   allocated resources:
+  performance and log levels, and defines an MPI launch command
+  that will use all
+  allocated resources:
   ```
   MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
   ```
