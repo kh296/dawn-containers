@@ -108,12 +108,17 @@ via containers:
 
   In addition, this script loads modules for enabling
   [MPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html)
-  on the node from which the script is sourced, sets non-default values
-  for some of the [oneCCL environment variables that affect MPI behaviour](https://uxlfoundation.github.io/oneCCL/env-variables.html), and
-  defines an MPI launch command that will use all allocated resources:
+  on the node from which the script is sourced, sets values for
+  [oneCCL](https://uxlfoundation.github.io/oneCCL/) and
+  [Intel MPI](https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-15/) environment variables that affect MPI
+  performance, and defines an MPI launch command that will use all
+   allocated resources:
   ```
   MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
   ```
+
+  Comments in the script include further information about the environment
+  variables set.
 
 - [pytorch/setup_apptainer.sh](pytorch/setup_apptainer.sh)
 

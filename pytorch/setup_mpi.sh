@@ -1,7 +1,7 @@
 # Script to set environment variables useful for task parallelisation with MPI.
-# These variables are derived from variables typically set in a Slurm
-# environment, but with default values used for any Slurm variables
-# that are missing.
+# These include variables used by Intel libraries, and variables derived
+# from variables typically set in a Slurm environment.  Default values are
+# used for any Slurm variables that are missing.
 #
 # The derived variables specifying number of tasks per node (TASKS_PER_NODE),
 # number of tasks (WORLD_SIZE), and number of CPU cores per task
@@ -107,6 +107,9 @@ module load intel-oneapi-ccl/2021.15.0
 # https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-log-level
 export CCL_LOG_LEVEL="warn"
 #
+# https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-process-launcher
+export CCL_PROCESS_LAUNCHER="hydra"
+#
 # https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-atl-transport
 # On Dawn, the recommended value for Abstract Transport Layer (ATL) transport
 # is "ofi".
@@ -118,26 +121,47 @@ export CCL_ATL_TRANSPORT="ofi"
 # for Level Zero Inter Process Communication (IPC) exchange is "sockets".
 export CCL_ZE_IPC_EXCHANGE="sockets"
 #
+# https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-atl-shm
+# Set to 1 if "shm" is to be used as fabric provider, by itself or in
+# combination with another provider.  Otherwise, set to 0.
+export CCL_ATL_SHM=0
+#
 # https://github.com/uxlfoundation/oneCCL/blob/2021.15/src/topology/topo_manager.cpp#L468
 export CCL_TOPO_FABRIC_VERTEX_CONNECTION_CHECK=0
 #
 # https://www.intel.com/content/www/us/en/docs/oneccl/developer-guide-reference/2021-8/environment-variables.html#MULTI-NIC
-# Use of the four InfiniBand network interface cards (NICs) of a Dawn node
-# can be enabled via the environment variables
-# CCL_MNIC, CCL_MNIC_NAME, CCL_MNIC_COUNT.
-#export CCL_MNIC="global"
-#export CCL_MNIC_NAME="mlx5_0,mlx5_1,mlx5_2,mlx5_3"
-#export CCL_MNIC_COUNT=4
+# Each Dawn node has 4 network interface cards (NICs).
+# Setting the number of NICs used (CCL_MNIC_COUNT) to be greater than 1
+# doesn't necessarily increase speed, depending on the data transfers
+# performed.
+# If the fabric provider (FI_PROVIDER below) is set to "tcp", "shm,tcp",
+# "verbs" or "shm,verbs", NIC selection (CCL_MNIC) should be set to "global".
+# If the fabric provider is "psm3" or "shm,psm3", NIC selection may be set to
+# "local" or "global".
+# Within a selection, NICs may be filtered by defining CCL_MNIC_NAME.
+export CCL_MNIC_COUNT=1
+export CCL_MNIC="global"
+#export CCL_MNIC_NAME="ib0"
 
 # Configure Open Fabrics Infrastructure (OFI).
 #
 # https://www.intel.com/content/www/us/en/docs/mpi-library/developer-guide-linux/2021-6/ofi-providers-support.html
-# With the current setup_apptainer.sh, the providers supported are:
-# "tcp" (default) - defaults to using "eth0" network interface card;
-# "verbs" - defaults to using "mlx5_0" network interface card.
-# With the example, "tcp" tends to be faster than "verbs",
-# and "verbs" with a single network interface card tends to be faster
-# than "verbs" with multiple network interface cards".
+# With the current setup_apptainer.sh, the providers supported, and
+# the network-interface cards (NICs) that they use are:
+# "tcp" (default) - uses NICs from "eth0", "eth1", "ib0", "ib1", "ib2", "ib3",
+#     "lo", defaulting to "eth0" when a single NIC is requested;
+# "verbs" - uses Mellanox InfiniBand NICs from "mlx5_0", "mlx5_1",
+#     "mlx5_2", "mlx5_3", defaulting to "mlx_0" when a single NIC is requested;
+# "psm3" - uses Mellanox InfiniBand NICs from "mlx5_0", "mlx5_1",
+#     "mlx5_2", "mlx5_3", defaulting to "mlx_0" when a single NIC is requested;
+# "shm" - uses shared memory, available for intra-node communication only,
+#     requires CCL_ATL_SHM=1 (see above), may be used in combination with
+#     another providers, for example "shm,psm3".
+#
+# In the case of the example:
+# - speeds tend to be in the order "tcp", "psm3", "verbs";
+# - speeds with 1 network-interface card tend to be higher than
+#   with more than 1.
 export FI_PROVIDER="tcp"
 # https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-15/ofi-capable-network-fabrics-control.html#id-d9184e46
 # If CCL_ATL_TRANSPORT is set to "mpi" (not recommended on Dawn),
