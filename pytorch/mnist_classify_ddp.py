@@ -89,13 +89,19 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
-def setup(backend, rank, world_size, dist_url, dist_port):
-    init_method = f"tcp://{dist_url}:{dist_port}"
-    # initialize the process group
-    dist.init_process_group(backend=backend, init_method=init_method,
-            rank=rank, world_size=world_size)
-    print(f"Added to process group: host: {gethostname()}, "
-            f"rank: {rank}, world_size: {world_size}", flush=True)
+def get_int_from_env(env_vars=[], default=1):
+    """
+    Return first integer from environment variables in list env_vars.
+    If no variable set to an integer, return default.
+    """
+    for env_var in env_vars:
+        value = os.getenv(env_var)
+        if value is not None:
+            try:
+                return int(value)
+            except ValueError:
+                continue
+    return default
 
 def main():
     # Training settings
@@ -107,8 +113,8 @@ def main():
                         help='url used to set up distributed training')
     parser.add_argument('--dist-port', default='55100', type=str,
                         help='url port used to set up distributed training')
-    parser.add_argument('--cpus-per-task', default=1, type=int,
-                        help='number of CPUs per task')
+    parser.add_argument('--cpus-per-task', default=-1, type=int,
+                        help='number of CPUs per task; -1 for all allowed CPUs')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000,
@@ -151,7 +157,14 @@ def main():
 
     if -1 == args.ntasks_per_node:
         args.ntasks_per_node = device_module.device_count()
+    if -1 == args.cpus_per_task and hasattr(os, 'sched_getaffinity'):
+        args.cpus_per_task = len(os.sched_getaffinity(0))
+        if args.cpus_per_task > 0:
+            print(f"Setting cpus_per_task={args.cpus_per_task}")
 
+    if args.cpus_per_task <= 0:
+        args.cpus_per_task = 1
+        print(f"Setting cpus_per_task={args.cpus_per_task}")
     torch.manual_seed(args.seed)
     
     train_kwargs = {'batch_size': args.batch_size}
@@ -175,18 +188,26 @@ def main():
                               download=False,
                               transform=transform)
 
-    world_size = int(os.environ.get("PMI_SIZE", 1))
-    rank = int(os.environ.get("PMI_RANK", 0))
+    world_size = get_int_from_env(
+        ["PMI_SIZE", "OMPI_COMM_WORLD_SIZE", "WORLD_SIZE", "SLURM_NTASKS"], 1)
+    rank = get_int_from_env(
+        ["PMI_RANK", "OMPI_COMM_WORLD_RANK", "RANK", "SLURM_PROCID"], 0)
     local_rank = rank - args.ntasks_per_node * (rank // args.ntasks_per_node)
     current_device = f"{device_type}:{local_rank}"
-    print(f"host+device: {gethostname()}+{current_device}, "
-            f"rank: {rank}, local_rank: {local_rank}, ", flush=True)
+    backend = backends[device_type] if world_size > 1 else None
+    info = (f"host+device: {gethostname()}+{current_device}, "
+            f"backend: {backend}, "
+            f"world_size: {world_size}, "
+            f"rank: {rank}, local_rank: {local_rank}")
 
-    if backends[device_type]:
-        setup(backends[device_type],
-              rank, world_size, args.dist_url, args.dist_port)
-
+    if backend:
+        init_method = f"tcp://{args.dist_url}:{args.dist_port}"
+        # initialize the process group
+        dist.init_process_group(backend=backend, init_method=init_method,
+            rank=rank, world_size=world_size, device_id=local_rank)
+        info = f"{info} - initialised process group"
         device_module.set_device(current_device)
+    print(info)
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
             dataset1,
@@ -199,7 +220,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset2,
                                               **test_kwargs)
     model = Net().to(current_device)
-    ddp_model = DDP(model) if backends[device_type] else model
+    ddp_model = DDP(model) if backend else model
     optimizer = optim.Adadelta(ddp_model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
@@ -211,7 +232,7 @@ def main():
     if args.save_model and rank == 0:
         torch.save(model.state_dict(), "mnist_cnn.pt")
 
-    if backends[device_type]:
+    if backend:
         dist.destroy_process_group()
 
 

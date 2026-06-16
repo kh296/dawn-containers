@@ -65,6 +65,7 @@ if [[ -z "${SLURM_CPUS_ON_NODE}" ]]; then
     SLURM_CPUS_ON_NODE=1
 fi
 CPUS_PER_TASK=$((SLURM_CPUS_ON_NODE / TASKS_PER_NODE))
+export OMP_NUM_THREADS=${CPUS_PER_TASK}\
 
 # Ensure that value assigned to SLURM_JOB_NODELIST.
 if [[ -z "${SLURM_JOB_NODELIST}" ]]; then
@@ -94,13 +95,25 @@ unset SLURM_MEM_PER_CPU
 unset SLURM_MEM_PER_NODE
 SLURM_EXPORT_ENV=ALL
 
-# Define mpi launch command.
-MPI_LAUNCH="mpiexec -n ${WORLD_SIZE} -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
-
 # Load modules.
 module purge
-module load rhel9/default-dawn
-module load intel-oneapi-ccl/2021.15.0
+
+if [[ "$(hostname)" == "pvc-s"* ]]; then
+    module load rhel9/default-dawn
+    module load intel-oneapi-ccl/2021.15.0
+elif [[ "$(hostname)" == *"-pl1"* ]]; then
+    module load rocm
+    module load openmpi
+fi
+
+# Define mpi launch command.
+MPI_LAUNCH="mpiexec -n ${WORLD_SIZE}"
+if [[ $(mpiexec --version) == *"Open MPI"* ]]; then
+    NODELIST=$(echo "${NODELIST}" | tr "," "\n" | sed "s/$/:${TASKS_PER_NODE}/" | paste -sd,)
+    MPI_LAUNCH+=" -N ${TASKS_PER_NODE} --host ${NODELIST}"
+else
+    MPI_LAUNCH+=" -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
+fi
 
 # Set some oneCCL environment variables.
 #

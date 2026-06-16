@@ -4,6 +4,15 @@
 # Set environment variables relating to MPI.
 source setup_mpi.sh
 
+if [[ "$(hostname)" == *"-pl1"* ]]; then
+    export APPTAINER_BINDPATH="\
+/shared/apps/ubuntu/opt/rocm-7.2.3/lib/hipblaslt/library,\
+/shared/apps/ubuntu/opt/rocm-patches-7.2.3/hipblaslt/library,\
+/opt/amdgpu/share/libdrm/amdgpu.ids\
+"
+    return
+fi
+
 # Define value for LD_LIBRARY_PATH to be used in container.
 export APPTAINERENV_LD_LIBRARY_PATH="\
 /usr/lib64/libibverbs:\
