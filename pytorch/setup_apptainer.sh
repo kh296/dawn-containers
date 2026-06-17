@@ -29,7 +29,7 @@ export APPTAINER_BINDPATH="\
 /usr/lib64/libibverbs,\
 /usr/lib64/libibverbs.so.1,\
 /usr/lib64/libmlx5.so.1,\
-/usr/lib64/libmlx5.so.1.25.54.0,\
+/usr/lib64/libmlx5.so.1.25.58.0,\
 /usr/lib64/libnl-route-3.so.200,\
 /usr/lib64/libnl-3.so.200,\
 /usr/lib64/libnuma.so.1,\
