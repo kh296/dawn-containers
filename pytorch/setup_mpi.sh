@@ -115,6 +115,16 @@ else
     MPI_LAUNCH+=" -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
 fi
 
+# Set some NCCL environment variables.
+#
+# https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html#nccl-debug
+export NCCL_DEBUG="VERSION"
+#
+# https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html#nccl-socket-ifname
+if [[ "$(hostname)" == *"-pl1"* ]]; then
+    export NCCL_SOCKET_IFNAME="enp129s0"
+fi
+
 # Set some oneCCL environment variables.
 #
 # https://uxlfoundation.github.io/oneCCL/env-variables.html#ccl-log-level
