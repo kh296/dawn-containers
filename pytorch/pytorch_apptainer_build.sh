@@ -46,7 +46,6 @@ VERSION="latest"
 # Match default identifier to system used.
 if [[ "$(hostname)" == "pvc-s"* ]]; then
     SYSTEM="Dawn"
-    VERSION="2.8.10-xpu"
     IDENTIFIER="intel/${PROJECT_NAME_LC}:${VERSION}"
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
     SYSTEM="aac6"
