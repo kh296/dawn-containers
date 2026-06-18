@@ -46,6 +46,7 @@ VERSION="latest"
 # Match default identifier to system used.
 if [[ "$(hostname)" == "pvc-s"* ]]; then
     SYSTEM="Dawn"
+    VERSION="2.8.10-xpu"
     IDENTIFIER="intel/${PROJECT_NAME_LC}:${VERSION}"
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
     SYSTEM="aac6"
@@ -73,8 +74,7 @@ usage() {
     echo "If -a is omitted, the apptainer image is written to:"
     echo "    ${IMAGE_PATH},"
     echo "    with filename determined from the path or identifier of the docker image,"
-    echo "    for example:"
-    echo "    ${IMAGE_NAME}."
+    echo "    for example: ${IMAGE_NAME}."
 }
 
 while [[ $# -gt 0 ]]; do
