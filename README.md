@@ -6,7 +6,7 @@ The following are minimal instructions for running example PyTorch model
 training on the [Dawn supercomputer](https://www.hpc.cam.ac.uk/d-w-n),
 using multi-node multi-GPU
 [distributed data parallel](https://docs.pytorch.org/tutorials/beginner/ddp_series_intro.html?utm_source=distr_landing&utm_medium=ddp_series_intro) with
-[Apptainer](https://apptainer.org/docs/user/main/index.html) containers
+[Apptainer](https://apptainer.org/docs/user/main/index.html) containers.
 The example is for training
 classification of hand-written digits from the [MNIST dataset](https://web.archive.org/web/20200430193701/http://yann.lecun.com/exdb/mnist/).
 
@@ -20,14 +20,14 @@ a Dawn compute node.
   clone https://github.com/kh296/dawn-containers
   cd dawn-containers/pytorch
   ```
-- Submit a Slurm job to create the Apptainer image file `pytorch2.8.sif`:
+- Submit a Slurm job to create the Apptainer image file `../apptainer/pytorch-latest.sif`:
   ```
   # Substitute valid project account for <project_account>.
-  # Output written to build_image.log.
-  sbatch --account=<project_account> build_image.sh
+  # Output written to apptainer_build.log.
+  sbatch --account=<project_account> pytorch_apptainer_build.sh
   ```
-- Once the image build has completed, submit a Slurm job to run the PyTorch
-  example:
+- Once the job has completed, check that `apptainer_build.log` reports
+  `Build completed`, then submit a Slurm job to run the PyTorch example:
   ```
   # Substitute valid project account for <project_account>.
   # Output written to go_apptainer.log
@@ -44,9 +44,9 @@ rather than submitting as Slurm jobs:
   clone https://github.com/kh296/dawn-containers
   cd dawn-containers/pytorch
   ```
-- Create the Apptainer image file `pytorch2.8.sif`:
+- Create the Apptainer image file `../apptainer/pytorch-latest.sif`:
   ```
-  ./build_image.sh
+  ./pytorch_apptainer_build.sh
   ```
 - Run the PyTorch example:
   ```
@@ -57,28 +57,18 @@ rather than submitting as Slurm jobs:
 
 ### 2.1 Apptainer image
 
-The script [pytorch/build_image.sh](pytorch/build_image.sh) builds an
-Apptainer image, `pytorch2.8.sif`, as specified by
-a definition file, [pytorch/pytorch2.8.def](pytorch/pytorch2.8.def).  The
-build is from the Docker image
-[intel/intel-extension-for-pytorch:2.8.10-xpu](https://hub.docker.com/r/intel/intel-extension-for-pytorch#xpu-images).
+By default, the script
+[pytorch/pytorch_apptainer_build.sh](pytorch_apptainer_build.sh) builds an
+Apptainer image, `pytorch-latest.sif` from the Docker image
+[intel/pytorch:latest](https://hub.docker.com/layers/intel/pytorch/latest/).
 This includes drivers for Intel GPUs, and an installation of
-[PyTorch 2.8](https://github.com/pytorch/pytorch/tree/v2.8.0) together with
-[Intel Extension for PyTorch](https://intel.github.io/intel-extension-for-pytorch/xpu/2.8.10+xpu/).
+[PyTorch](https://github.com/pytorch/pytorch/).
 
-The definition file may be modified, following the instructions for
-[Apptainer definition files](https://apptainer.org/docs/user/main/definition_files.html), so as to create an image with additional functionality.  For
-example, additional Python packages can be installed in a
-[%post](https://apptainer.org/docs/user/main/definition_files.html#post)
-section:
+For information on how to build from a different Docker image, or on how
+to specify the path for the Apptainer image created, from Dawn login node
+or compute node, use:
 ```
-%post
-    export PIP_ROOT_USER_ACTION=ignore;
-    export PIP_NO_CACHE_DIR=1;
-    python -m pip install --upgrade pip;
-    python -m pip install matplotlib;
-    python -m pip install pandas;
-    python -m pip install seaborn;
+./pytorch_apptainer_build.sh -h
 ```
 
 ### 2.2 Environment setup
