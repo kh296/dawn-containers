@@ -44,7 +44,7 @@ fi
 # Set defaults.
 VERSION="latest"
 # Match default identifier to system used.
-if [[ "$(hostname)" == "pvc-s"* ]]; then
+if [[ "$(hostname)" == "pvc-s"* || "$(hostname)" == "login-s"* ]]; then
     SYSTEM="Dawn"
     IDENTIFIER="intel/${PROJECT_NAME_LC}:${VERSION}"
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
