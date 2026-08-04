@@ -50,6 +50,9 @@ if [[ "$(hostname)" == "pvc-s"* || "$(hostname)" == "login-s"* ]]; then
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
     SYSTEM="aac6"
     IDENTIFIER="rocm/${PROJECT_NAME_LC}:${VERSION}"
+elif [[ "$(hostname)" == "gpu-u"* ]]; then
+    SYSTEM="Zenith"
+    IDENTIFIER="rocm/${PROJECT_NAME_LC}:${VERSION}"
 else
     SYSTEM="unknown"
     IDENTIFIER=""

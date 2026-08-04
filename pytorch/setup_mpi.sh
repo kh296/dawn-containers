@@ -96,12 +96,17 @@ unset SLURM_MEM_PER_NODE
 SLURM_EXPORT_ENV=ALL
 
 # Load modules.
-module purge
-
 if [[ "$(hostname)" == "pvc-s"* ]]; then
+    module purge
     module load rhel9/default-dawn
     module load intel-oneapi-ccl/2021.15.0
+elif [[ "$(hostname)" == "gpu-u"* ]]; then
+    module purge
+    module load rhel9/default-amdgpu-zenith
+    module load rocm/7.14
+    module load openmpi/5.0.10
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
+    module purge
     module load rocm
     module load openmpi
 fi
@@ -123,6 +128,8 @@ export NCCL_DEBUG="VERSION"
 # https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html#nccl-socket-ifname
 if [[ "$(hostname)" == *"-pl1"* ]]; then
     export NCCL_SOCKET_IFNAME="enp129s0"
+elif [[ "$(hostname)" == "gpu-u"* ]]; then
+    export NCCL_IB_HCA=mlx5_0,mlx5_1,mlx5_2,mlx5_4,mlx5_5,mlx5_8,mlx5_9,mlx5_10
 fi
 
 # Set some oneCCL environment variables.
