@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --job-name=apptainer_build # create a short name for the job
-#SBATCH --output=%x.log        # job output file
+#SBATCH --output=%x_%j.log     # job output file
 #SBATCH --partition=pvc9       # cluster partition to be used
 #SBATCH --nodes=1              # number of nodes
 #SBATCH --gres=gpu:1           # number of allocated gpus per node

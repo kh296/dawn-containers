@@ -102,9 +102,8 @@ if [[ "$(hostname)" == "pvc-s"* ]]; then
     module load intel-oneapi-ccl/2021.15.0
 elif [[ "$(hostname)" == "gpu-u"* ]]; then
     module purge
-    module load rhel9/default-amdgpu-zenith
-    module load rocm/7.14
-    module load openmpi/5.0.10
+    module load rhel9/mi355x/base
+    module load openmpi
 elif [[ "$(hostname)" == *"-pl1"* ]]; then
     module purge
     module load rocm
@@ -120,6 +119,9 @@ else
     MPI_LAUNCH+=" -ppn ${TASKS_PER_NODE} --hosts ${NODELIST}"
 fi
 
+# Define srun launch command.
+SRUN_LAUNCH="srun --nodes=${SLURM_NNODES} --ntasks-per-node=${TASKS_PER_NODE} --gres=gpu:${SLURM_GPUS_ON_NODE}"
+
 # Set some NCCL environment variables.
 #
 # https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html#nccl-debug
@@ -128,8 +130,6 @@ export NCCL_DEBUG="VERSION"
 # https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html#nccl-socket-ifname
 if [[ "$(hostname)" == *"-pl1"* ]]; then
     export NCCL_SOCKET_IFNAME="enp129s0"
-elif [[ "$(hostname)" == "gpu-u"* ]]; then
-    export NCCL_IB_HCA=mlx5_0,mlx5_1,mlx5_2,mlx5_4,mlx5_5,mlx5_8,mlx5_9,mlx5_10
 fi
 
 # Set some oneCCL environment variables.

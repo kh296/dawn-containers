@@ -4,7 +4,6 @@
 # Set environment variables relating to MPI.
 source setup_mpi.sh
 
-# Define binding for AAC6.
 if [[ "$(hostname)" == *"-pl1"* ]]; then
     export APPTAINER_BINDPATH="\
 /shared/apps/ubuntu/opt/rocm-7.2.3/lib/hipblaslt/library,\
@@ -14,7 +13,6 @@ if [[ "$(hostname)" == *"-pl1"* ]]; then
     return
 fi
 
-# Define no binding for Zenith.
 if [[ "$(hostname)" == "gpu-u"* ]]; then
     return
 fi
