@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --job-name=go_apptainer # create a short name for the job
-#SBATCH --output=%x.log         # job output file
+#SBATCH --output=%x_%j.log      # job output file
 #SBATCH --partition=pvc9        # cluster partition to be used
 #SBATCH --nodes=2               # number of nodes
 #SBATCH --gres=gpu:4            # number of allocated gpus per node
@@ -64,6 +64,18 @@ elif [[ "env" == "${1}" ]]; then
     exit
 fi
 
+if [[ -z "${LAUNCH_MODE}" ]]; then
+    LAUNCH_MODE="srun"
+fi
+
+if [[ "srun" == "${LAUNCH_MODE}" ]]; then
+    ALL_LAUNCH=${SRUN_LAUNCH}
+elif [[ "mpiexec" == "${LAUNCH_MODE}" ]]; then
+    ALL_LAUNCH=${MPI_LAUNCH}
+else
+    echo "Unknown launch mode for LAUNCH_MODE=\"${LAUNCH_MODE}\" - existing"
+fi
+
 # Run and time application.
 T2=${SECONDS}
 PYTORCH_LAUNCH="\
@@ -74,7 +86,7 @@ python mnist_classify_ddp.py\
  --cpus-per-task ${CPUS_PER_TASK}\
  --epochs 2\
 "
-CMD="${MPI_LAUNCH} ${APPTAINER_LAUNCH} ${PYTORCH_LAUNCH}"
+CMD="${ALL_LAUNCH} ${APPTAINER_LAUNCH} ${PYTORCH_LAUNCH}"
 echo ""
 echo "PyTorch DDP run started: $(date)"
 echo "${CMD}"
