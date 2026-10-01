@@ -120,7 +120,7 @@ else
 fi
 
 # Define srun launch command.
-SRUN_LAUNCH="srun --nodes=${SLURM_NNODES} --ntasks-per-node=${TASKS_PER_NODE} --gres=gpu:${SLURM_GPUS_ON_NODE}"
+SRUN_LAUNCH="srun --nodes=${SLURM_NNODES} --ntasks=${WORLD_SIZE} --gres=gpu:${SLURM_GPUS_ON_NODE}"
 
 # Set some NCCL environment variables.
 #
