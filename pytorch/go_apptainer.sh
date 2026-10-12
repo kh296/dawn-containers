@@ -34,7 +34,8 @@ set -e
 # Set up environment for launching container.
 source setup_apptainer.sh
 
-APPTAINER_LAUNCH="apptainer exec ../apptainer/pytorch-latest.sif"
+SIF_PATH=$(readlink -f "$(ls -d ../apptainer/*.sif 2>/dev/null | head -n1)")
+APPTAINER_LAUNCH="apptainer exec $(echo ${SIF_PATH})"
 
 # Ensure that data needed are downloaded before running application.
 if [ ! -d data ]; then

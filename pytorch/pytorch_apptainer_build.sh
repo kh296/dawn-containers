@@ -43,6 +43,7 @@ fi
 
 # Set defaults.
 VERSION="latest"
+ZENITH_VERSION="rocm7.14.1_ubuntu26.04_py3.14_pytorch_release_2.12.0"
 # Match default identifier to system used.
 if [[ "$(hostname)" == "pvc-s"* || "$(hostname)" == "login-s"* ]]; then
     SYSTEM="Dawn"
@@ -51,6 +52,7 @@ elif [[ "$(hostname)" == *"-pl1"* ]]; then
     SYSTEM="aac6"
     IDENTIFIER="rocm/${PROJECT_NAME_LC}:${VERSION}"
 elif [[ "$(hostname)" == "gpu-u"* ]]; then
+    VERSION="${ZENITH_VERSION}"
     SYSTEM="Zenith"
     IDENTIFIER="rocm/${PROJECT_NAME_LC}:${VERSION}"
 else
